@@ -1,7 +1,11 @@
 #include <string.h>
+#include <cglm/cglm.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
 
 #include "util.h"
 #include "graphics.h"
+#include "resources/textures/test.png.h"
 
 int main(int argc, char const* const argv) {
 	if (!glfwInit()) {
@@ -35,10 +39,34 @@ int main(int argc, char const* const argv) {
 		p_err("Failed to create shader: %s\n", err_buf);
 		goto cleanup;
 	}
-	
+
+	mat4 world = {0};
+	glm_mat4_identity(world);
+
+	mat4 proj = {0};
+	glm_ortho(0, 640, 480, 0, -1.0f, 1.f, proj);
+
+	size_t always_len = 2;
+	struct uniform_mat4f always[2] = {
+		{
+			.name = "world",
+			.data = world[0],
+		},
+		{
+			.name = "proj",
+			.data = proj[0],
+		},
+	};
+
+	struct texture_info test = texture_info_stbi_load_memory(test_png, test_png_len);
+	struct uniform_texture test_uni = {
+		.name = "tex",
+		.info = &test,
+	};
+
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT);
-		render(window, &sprite, &basic);
+		render(window, &sprite, &basic, always, always_len, test_uni);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
@@ -46,6 +74,7 @@ int main(int argc, char const* const argv) {
 cleanup:
 	draw_info_destroy(&sprite);
 	shader_info_destroy(&basic);
+	texture_info_destroy(&test);
 	glfwDestroyWindow(window);
 	glfwTerminate();
 

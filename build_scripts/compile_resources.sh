@@ -11,6 +11,6 @@ for path in $@; do
 	: > $output_header
 	echo "#pragma once" >> $output_header
 	xxd -i $path | sed \
-		-e "s,unsigned char,char const,g;"\
+		-e "s,unsigned char,unsigned char const,g;"\
 		-e "s,$underscore_path,$underscore_file,g;" >> $output_header
 done

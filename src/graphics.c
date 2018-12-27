@@ -1,11 +1,28 @@
+#include <cglm/cglm.h>
+#include <stb/stb_image.h>
+
 #include "graphics.h"
 #include "util.h"
 #include "resources/shaders/basic.vert.h"
 #include "resources/shaders/basic.frag.h"
 
-void render(GLFWwindow const * const window, struct draw_info const* sprite, struct shader_info* basic) {
+void render(GLFWwindow const * const window, struct draw_info const* sprite, struct shader_info* basic, struct uniform_mat4f* always, size_t always_len, struct uniform_texture test) {
 	p_log("Render called\n");
 	shader_info_activate(basic);
+	for (struct uniform_mat4f* mat = always; mat != always + always_len; ++mat) {
+		uniform_mat4f_enable(basic->program, *mat);
+	}
+
+	mat4 transform_mat = {0};
+	vec3 translation = {10.f, 10.f, 0.0f};
+	glm_translate_make(transform_mat, translation);
+	glm_scale_uni(transform_mat, 200.f);
+	struct uniform_mat4f transform = {
+		.name = "transform",
+		.data = transform_mat[0],
+	};
+	uniform_mat4f_enable(basic->program, transform);
+	uniform_texture_enable(basic->program, test, 0);
 	draw_info_activate(sprite);
 	draw_info_draw(sprite);
 }
@@ -50,10 +67,10 @@ struct draw_info sprite_create() {
 
 	GLfloat vertex_data[20] = {
 		//   x    y    z    u    v
-		  -1.0,  1.0, 0.0, 0.0, 0.0,
-		   0.0,  1.0, 0.0, 0.0, 0.0,
+		   0.0,  1.0, 0.0, 0.0, 1.0,
+		   1.0,  1.0, 0.0, 1.0, 1.0,
+		   1.0,  0.0, 0.0, 1.0, 0.0,
 		   0.0,  0.0, 0.0, 0.0, 0.0,
-		  -1.0,  0.0, 0.0, 0.0, 0.0,
 	};
 	glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(GLfloat), vertex_data, GL_STATIC_DRAW);
 	glVertexAttribPointer(POS_ATTRIB, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
@@ -100,7 +117,7 @@ struct shader_info basic_shader_create(char* err_buf, size_t err_buf_sz) {
 	struct shader_info shader = _shader_info_create();
 
 	GLint len = basic_vert_len;
-	GLchar const* src = basic_vert;
+	GLchar const* src = (GLchar const*)basic_vert;
 	glShaderSource(shader.vert, 1, &src, &len);
 	glCompileShader(shader.vert);
 	GLint success = 0;
@@ -112,7 +129,7 @@ struct shader_info basic_shader_create(char* err_buf, size_t err_buf_sz) {
 	}
 
 	len = basic_frag_len;
-	src = basic_frag;
+	src = (GLchar const*)basic_frag;
 	glShaderSource(shader.frag, 1, &src, &len);
 	glCompileShader(shader.frag);
 	glGetShaderiv(shader.frag, GL_COMPILE_STATUS, &success);
@@ -130,10 +147,55 @@ struct shader_info basic_shader_create(char* err_buf, size_t err_buf_sz) {
 	return shader;
 }
 
-int set_mat4f_uniform_data(GLuint program, char const* name, GLfloat const* data) {
-	GLint location = glGetUniformLocation(program, name);
+int uniform_mat4f_enable(GLuint program, struct uniform_mat4f const uniform) {
+	GLint location = glGetUniformLocation(program, uniform.name);
 	if (location < 0) {
 		return -1;
 	}
-	glUniformMatrix4fv(location, 1, GL_FALSE, data);
+	glUniformMatrix4fv(location, 1, GL_FALSE, uniform.data);
+	return 0;
+}
+
+struct texture_info _texture_info_create() {
+	struct texture_info ret = {0};
+	glGenTextures(1, &ret.texture);
+
+	return ret;
+}
+
+void texture_info_destroy(struct texture_info* info) {
+	glDeleteTextures(1, &info->texture);
+}
+
+struct texture_info texture_info_stbi_load_memory(unsigned char const* data, size_t len) {
+	struct texture_info info = _texture_info_create();
+	int x = 0;
+	int y = 0;
+	int comp = 0;
+	unsigned char* stbi_data = stbi_load_from_memory(data, len, &x, &y, &comp, 4);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, info.texture);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, stbi_data);
+	stbi_image_free(stbi_data);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	return info;
+}
+
+int uniform_texture_enable(GLuint program, struct uniform_texture uniform, GLuint slot) {
+	GLint location = glGetUniformLocation(program, uniform.name);
+	if (location < 0) {
+		return -1;
+	}
+	glActiveTexture(GL_TEXTURE0 + slot);
+	glBindTexture(GL_TEXTURE_2D, uniform.info->texture);
+	glUniform1i(location, GL_TEXTURE0 + slot);
+	return 0;
 }
