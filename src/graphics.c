@@ -67,10 +67,10 @@ struct draw_info sprite_create() {
 
 	GLfloat vertex_data[20] = {
 		//   x    y    z    u    v
-		   0.0,  1.0, 0.0, 0.0, 1.0,
-		   1.0,  1.0, 0.0, 1.0, 1.0,
-		   1.0,  0.0, 0.0, 1.0, 0.0,
-		   0.0,  0.0, 0.0, 0.0, 0.0,
+		   0.0,  1.0, 0.0, 0.0, 0.0,
+		   1.0,  1.0, 0.0, 1.0, 0.0,
+		   1.0,  0.0, 0.0, 1.0, 1.0,
+		   0.0,  0.0, 0.0, 0.0, 1.0,
 	};
 	glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(GLfloat), vertex_data, GL_STATIC_DRAW);
 	glVertexAttribPointer(POS_ATTRIB, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);

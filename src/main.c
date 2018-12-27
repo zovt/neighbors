@@ -7,6 +7,14 @@
 #include "graphics.h"
 #include "resources/textures/test.png.h"
 
+
+mat4 proj = {0};
+
+void window_size_cb(GLFWwindow* _window, int width, int height) {
+	glm_ortho(0, width, 0, height, -1.0f, 1.f, proj);
+	glViewport(0, 0, width, height);
+}
+
 int main(int argc, char const* const argv) {
 	if (!glfwInit()) {
 		p_err("Failed to initialize GLFW\n");
@@ -25,6 +33,7 @@ int main(int argc, char const* const argv) {
 	}
 
 	glfwMakeContextCurrent(window);
+	glfwSetWindowSizeCallback(window, window_size_cb);
 
 	glewExperimental = GL_TRUE;
 	glewInit();
@@ -43,8 +52,8 @@ int main(int argc, char const* const argv) {
 	mat4 world = {0};
 	glm_mat4_identity(world);
 
-	mat4 proj = {0};
-	glm_ortho(0, 640, 480, 0, -1.0f, 1.f, proj);
+	glm_ortho(0, 640, 0, 480, -1.0f, 1.f, proj);
+	glViewport(0, 0, 640, 480);
 
 	size_t always_len = 2;
 	struct uniform_mat4f always[2] = {
