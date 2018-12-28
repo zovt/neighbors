@@ -73,9 +73,12 @@ int main(int argc, char const* const argv) {
 		.info = &test,
 	};
 
+	struct world world_info = {0};
+	struct entity* player = entity_create(&world_info);
+
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT);
-		render(window, &sprite, &basic, always, always_len, test_uni);
+		render(window, &world_info);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}

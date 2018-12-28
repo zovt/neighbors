@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game.h"
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -56,4 +58,4 @@ struct uniform_texture {
 
 int uniform_texture_enable(GLuint program, struct uniform_texture uniform, GLuint slot);
 
-void render(GLFWwindow const* window, struct draw_info const* sprite, struct shader_info* basic, struct uniform_mat4f* always, size_t always_len, struct uniform_texture test);
+void render(GLFWwindow const* window, struct world* world);

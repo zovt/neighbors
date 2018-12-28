@@ -2,29 +2,13 @@
 #include <stb/stb_image.h>
 
 #include "graphics.h"
+#include "game.h"
 #include "util.h"
 #include "resources/shaders/basic.vert.h"
 #include "resources/shaders/basic.frag.h"
 
-void render(GLFWwindow const * const window, struct draw_info const* sprite, struct shader_info* basic, struct uniform_mat4f* always, size_t always_len, struct uniform_texture test) {
+void render(GLFWwindow const * const window, struct world* world) {
 	p_log("Render called\n");
-	shader_info_activate(basic);
-	for (struct uniform_mat4f* mat = always; mat != always + always_len; ++mat) {
-		uniform_mat4f_enable(basic->program, *mat);
-	}
-
-	mat4 transform_mat = {0};
-	vec3 translation = {10.f, 10.f, 0.0f};
-	glm_translate_make(transform_mat, translation);
-	glm_scale_uni(transform_mat, 200.f);
-	struct uniform_mat4f transform = {
-		.name = "transform",
-		.data = transform_mat[0],
-	};
-	uniform_mat4f_enable(basic->program, transform);
-	uniform_texture_enable(basic->program, test, 0);
-	draw_info_activate(sprite);
-	draw_info_draw(sprite);
 }
 
 struct draw_info _draw_info_create() {
