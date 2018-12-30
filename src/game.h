@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stddef.h>
+
 enum entity_type {
 	ET_character,
 	ET_item,
@@ -16,10 +18,12 @@ struct entity {
 	unsigned int height;
 };
 
+#define WORLD_ENTITIES 512
 struct world {
-	struct entity entities[512]; // CONSIDER: is this enough?
+	struct entity entities[WORLD_ENTITIES]; // CONSIDER: is this enough?
 	size_t last_entity_id;
 };
 
 struct entity* entity_create(struct world* world);
 void entity_destroy(struct world* world, struct entity* entity);
+struct entity* entity_get(struct world* world, size_t entity_id);

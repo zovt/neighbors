@@ -2,13 +2,49 @@
 #include <stb/stb_image.h>
 
 #include "graphics.h"
+#include "resources.h"
 #include "game.h"
 #include "util.h"
 #include "resources/shaders/basic.vert.h"
 #include "resources/shaders/basic.frag.h"
 
-void render(GLFWwindow const * const window, struct world* world) {
+void render(GLFWwindow const * const window, struct world const* world, struct graphics_resources* g_res, struct uniform_mat4f proj_uni, struct uniform_mat4f world_uni) {
 	p_log("Render called\n");
+	
+	struct shader_info* basic = graphics_resources_get_shader_named(g_res, "basic");
+	struct texture_info* test = graphics_resources_get_texture_named(g_res, "test");
+	struct draw_info* sprite = graphics_resources_get_draw_info_named(g_res, "sprite");
+	shader_info_activate(basic);
+	struct uniform_texture test_uni = {
+		.name = "tex",
+		.info = test,
+	};
+
+	uniform_texture_enable(basic->program, test_uni, 0);
+	
+	draw_info_activate(sprite);
+
+	uniform_mat4f_enable(basic->program, proj_uni);
+	uniform_mat4f_enable(basic->program, world_uni);
+	
+	struct uniform_mat4f transform_uni = {
+		.name = "transform",
+		.data = NULL,
+	};
+
+	for (size_t i = 0; i < WORLD_ENTITIES; ++i) {
+		struct entity ent = world->entities[i];
+		if (ent.id != 0) {
+			mat4 transform = {0};
+			vec3 location = {ent.x_pos, ent.y_pos, 0.f};
+			glm_translate_make(transform, location);
+			vec3 size = {ent.width, ent.height, 1.0f};
+			glm_scale(transform, size);
+			transform_uni.data = transform[0];
+			uniform_mat4f_enable(basic->program, transform_uni);
+		}
+	}
+	draw_info_draw(sprite);
 }
 
 struct draw_info _draw_info_create() {

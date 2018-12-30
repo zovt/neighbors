@@ -58,4 +58,5 @@ struct uniform_texture {
 
 int uniform_texture_enable(GLuint program, struct uniform_texture uniform, GLuint slot);
 
-void render(GLFWwindow const* window, struct world* world);
+struct graphics_resources;
+void render(GLFWwindow const* window, struct world const* world_info, struct graphics_resources*, struct uniform_mat4f proj, struct uniform_mat4f world);

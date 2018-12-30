@@ -8,16 +8,16 @@
 type* graphics_resources_register_ ## type_name (struct graphics_resources* res, type to_reg, char const* name) {\
 	size_t name_len = strlen(name);\
 	for (size_t i = 0; i < sizeof(res->info_name)/sizeof(res->info_name[0]); ++i) {\
+		if (res->names_name[i] == NULL) {\
+			res->names_name[i] = name;\
+			res->info_name[i] = to_reg;\
+			return &res->info_name[i];\
+		}\
 		char const* other_name = res->names_name[i];\
 		size_t other_name_len = strlen(other_name);\
 		if (strncmp(name, other_name, (name_len < other_name_len ? name_len : other_name_len)) == 0) {\
 			p_err("type resource already exists with name %s\n", name);\
 			return NULL;\
-		}\
-		if (res->names_name[i] == NULL) {\
-			res->names_name[i] = name;\
-			res->info_name[i] = to_reg;\
-			return &res->info_name[i];\
 		}\
 	}\
 \

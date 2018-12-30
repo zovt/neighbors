@@ -36,3 +36,14 @@ void entity_destroy(struct world* world, struct entity* entity) {
 	}
 	slot->id = 0;
 }
+
+struct entity* entity_get(struct world* world, size_t entity_id) {
+	for (size_t i = 0; i < WORLD_ENTITIES; ++i) {
+		struct entity* entity = &world->entities[i];
+		if (entity->id == entity_id) {
+			return entity;
+		}
+	}
+
+	return NULL;
+}
